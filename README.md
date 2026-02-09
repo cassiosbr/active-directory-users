@@ -53,28 +53,28 @@ Abra a documentação interativa:
 
 ## Autenticação (x_api_key)
 
-As rotas que consultam o Active Directory exigem o header `x_api_key` com o mesmo valor configurado em `X_API_KEY`.
+As rotas que consultam o Active Directory exigem o header `x-api-key` com o mesmo valor configurado em `X_API_KEY`.
 
 ## Endpoints
 
 - `GET /api/v1/health`
 - `GET /api/v1/users` (mock)
-- `GET /api/v1/users-active-directory?email=...` (protegido por `x_api_key`)
-- `GET /api/v1/users-active-directory-photo?email=...` (protegido por `x_api_key`, retorna `image/*`)
+- `GET /api/v1/users-active-directory?email=...` (protegido por `x-api-key`)
+- `GET /api/v1/users-active-directory-photo?email=...` (protegido por `x-api-key`, retorna `image/*`)
 
 ### Exemplos com curl
 
 Buscar usuário:
 
 ```bash
-curl -H "x_api_key: $X_API_KEY" \
+curl -H "x-api-key: $X_API_KEY" \
 	"http://localhost:8000/api/v1/users-active-directory?email=usuario@empresa.com"
 ```
 
 Buscar foto (salvando em arquivo):
 
 ```bash
-curl -H "x_api_key: $X_API_KEY" \
+curl -H "x-api-key: $X_API_KEY" \
 	"http://localhost:8000/api/v1/users-active-directory-photo?email=usuario@empresa.com" \
 	--output foto.jpg
 ```
