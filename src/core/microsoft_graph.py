@@ -39,12 +39,24 @@ def _validate_graph_settings() -> None:
         raise GraphNotConfiguredError(
             "Microsoft Graph não configurado: defina MICROSOFT_GRAPH_CLIENT_SECRET"
         )
+    if not settings.microsoft_graph_api:    
+        raise GraphNotConfiguredError(
+            "Microsoft Graph não configurado: defina MICROSOFT_GRAPH_API"
+        )
+    if not settings.microsoft_graph_scope:
+        raise GraphNotConfiguredError(
+            "Microsoft Graph não configurado: defina MICROSOFT_GRAPH_SCOPE"
+        )
+    if not settings.microsoft_graph_authority:
+        raise GraphNotConfiguredError(
+            "Microsoft Graph não configurado: defina MICROSOFT_GRAPH_AUTHORITY"
+        )
 
 
 def _get_app_token() -> tuple[str, int]:
     _validate_graph_settings()
 
-    authority = f"https://login.microsoftonline.com/{settings.microsoft_graph_tenant_id}"
+    authority = f"{settings.microsoft_graph_authority}/{settings.microsoft_graph_tenant_id}"
     app = msal.ConfidentialClientApplication(
         settings.microsoft_graph_client_id,
         authority=authority,
@@ -108,7 +120,7 @@ async def get_user_by_email(email: str) -> dict[str, Any]:
     token = get_cached_token()
     headers = {"Authorization": f"Bearer {token}"}
 
-    graph_api = "https://graph.microsoft.com/v1.0"
+    graph_api = settings.microsoft_graph_api
     user_key = quote(email.strip())
     url = f"{graph_api}/users/{user_key}"
 
@@ -124,3 +136,23 @@ async def get_user_by_email(email: str) -> dict[str, Any]:
 
     _raise_for_graph_response(response)
     return response.json()
+
+
+async def get_user_photo_by_email(email: str) -> dict[str, Any]:
+    _validate_graph_settings()
+
+    token = get_cached_token()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    graph_api = settings.microsoft_graph_api
+    user_key = quote(email.strip())
+    url = f"{graph_api}/users/{user_key}/photos/240x240/$value"
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        response = await client.get(url, headers=headers)
+
+    _raise_for_graph_response(response)
+    
+    
+    content_type = response.headers.get("Content-Type", "image/jpeg")
+    return {"content": response.content, "content_type": content_type}

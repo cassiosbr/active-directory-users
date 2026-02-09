@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from typing import Any
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, Response, status
 
 from api.v1.schemas.users import UserOut
 from core.microsoft_graph import (
     GraphNotConfiguredError,
     GraphRequestError,
     get_user_by_email,
+    get_user_photo_by_email,
 )
 
 
@@ -67,11 +68,6 @@ async def get_users_active_directory(
             detail=exc.detail,
         )
     except GraphRequestError as exc:
-        if exc.status_code == 404:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Usuário não encontrado para email/UPN: {email}",
-            )
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
 
     name = payload.get("displayName")
@@ -82,4 +78,45 @@ async def get_users_active_directory(
         user_principal_name=payload.get("userPrincipalName"),
         given_name=payload.get("givenName"),
         surname=payload.get("surname"),
+    )
+
+
+@router.get(
+    "/users-active-directory-photo",
+    response_class=Response,
+    responses={200: {"content": {"image/*": {}}}},
+)
+async def get_users_active_directory_photo(
+    email: str = Query(
+        ...,
+        title="Email",
+        description="Email (ou UPN) do usuário no Active Directory.",
+        min_length=3,
+    ),
+) -> Any:    
+    """
+    Obtém a foto de um usuário do Active Directory (Microsoft Graph) pelo email/UPN.
+
+    - **email**: Email (ou UPN) do usuário.
+    """
+
+    try:
+        payload = await get_user_photo_by_email(email)
+    except GraphNotConfiguredError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=exc.detail,
+        )
+    except GraphRequestError as exc:
+        if exc.status_code == 404:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Foto não encontrada para o usuário: {email}",
+            )
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+    return Response(
+        content=payload["content"],
+        media_type=payload["content_type"],
+        status_code=status.HTTP_200_OK,
     )

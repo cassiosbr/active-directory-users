@@ -33,7 +33,9 @@ class Settings(BaseSettings):
     microsoft_graph_tenant_id: str | None = None
     microsoft_graph_client_id: str | None = None
     microsoft_graph_client_secret: str | None = None
-    microsoft_graph_scope: str = "https://graph.microsoft.com/.default"
+    microsoft_graph_api: str | None = None
+    microsoft_graph_scope: str | None = None
+    microsoft_graph_authority: str | None = None
 
 @lru_cache
 def get_settings() -> Settings:
