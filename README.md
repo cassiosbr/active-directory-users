@@ -51,7 +51,7 @@ Abra a documentação interativa:
 
 - http://localhost:8000/docs
 
-## Autenticação (x_api_key)
+## Autenticação (x-api-key)
 
 As rotas que consultam o Active Directory exigem o header `x-api-key` com o mesmo valor configurado em `X_API_KEY`.
 
