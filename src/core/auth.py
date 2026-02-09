@@ -5,14 +5,16 @@ from fastapi.security.api_key import APIKeyHeader
 
 from core.config import settings
 
-_api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+_api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
 
 
-def require_api_key(api_key: str | None = Security(_api_key_header)) -> None:
+def require_api_key(
+    api_key: str | None = Security(_api_key_header),
+) -> None:
     if not settings.x_api_key:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="API key não configurada. Defina X_API_KEY.",
+            detail="API key não configurada. Defina X-API-KEY.",
         )
 
     if api_key != settings.x_api_key:

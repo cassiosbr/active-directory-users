@@ -4,6 +4,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query, Response, status
 
 from api.v1.schemas.users import UserOut
+from core.auth import RequireApiKey
 from core.microsoft_graph import (
     GraphNotConfiguredError,
     GraphRequestError,
@@ -45,7 +46,11 @@ async def get_users_mock(
     ]
 
 
-@router.get("/users-active-directory", response_model=UserOut)
+@router.get(
+    "/users-active-directory",
+    response_model=UserOut,
+    dependencies=[RequireApiKey],
+)
 async def get_users_active_directory(
     email: str = Query(
         ...,
@@ -84,6 +89,7 @@ async def get_users_active_directory(
 @router.get(
     "/users-active-directory-photo",
     response_class=Response,
+    dependencies=[RequireApiKey],
     responses={200: {"content": {"image/*": {}}}},
 )
 async def get_users_active_directory_photo(
